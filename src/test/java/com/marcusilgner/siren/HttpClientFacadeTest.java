@@ -5,6 +5,7 @@ import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
+import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,52 +22,12 @@ public class HttpClientFacadeTest {
 
   private MockWebServer mockWebServer;
 
-  private String siren = "{\n" +
-                         "  \"class\": [ \"order\" ],\n" +
-                         "  \"title\": \"Order 42\",\n" +
-                         "  \"properties\": { \n" +
-                         "      \"orderNumber\": 42, \n" +
-                         "      \"itemCount\": 3,\n" +
-                         "      \"status\": \"pending\"\n" +
-                         "  },\n" +
-                         "  \"entities\": [\n" +
-                         "    { \n" +
-                         "      \"class\": [ \"items\", \"collection\" ], \n" +
-                         "      \"rel\": [ \"http://x.io/rels/order-items\" ], \n" +
-                         "      \"href\": \"http://api.x.io/orders/42/items\"\n" +
-                         "    },\n" +
-                         "    {\n" +
-                         "      \"class\": [ \"info\", \"customer\" ],\n" +
-                         "      \"rel\": [ \"http://x.io/rels/customer\" ], \n" +
-                         "      \"properties\": { \n" +
-                         "        \"customerId\": \"pj123\",\n" +
-                         "        \"name\": \"Peter Joseph\"\n" +
-                         "      },\n" +
-                         "      \"links\": [\n" +
-                         "        { \"rel\": [ \"self\" ], \"href\": \"http://api.x.io/customers/pj123\" }\n" +
-                         "      ]\n" +
-                         "    }\n" +
-                         "  ],\n" +
-                         "  \"actions\": [\n" +
-                         "    {\n" +
-                         "      \"name\": \"add-item\",\n" +
-                         "      \"title\": \"Add Item\",\n" +
-                         "      \"method\": \"POST\",\n" +
-                         "      \"href\": \"http://api.x.io/orders/42/items\",\n" +
-                         "      \"type\": \"application/x-www-form-urlencoded\",\n" +
-                         "      \"fields\": [\n" +
-                         "        { \"name\": \"orderNumber\", \"type\": \"hidden\", \"value\": \"42\" },\n" +
-                         "        { \"name\": \"productCode\", \"type\": \"text\" },\n" +
-                         "        { \"name\": \"quantity\", \"type\": \"number\" }\n" +
-                         "      ]\n" +
-                         "    }\n" +
-                         "  ],\n" +
-                         "  \"links\": [\n" +
-                         "    { \"rel\": [ \"self\" ], \"href\": \"http://api.x.io/orders/42\" },\n" +
-                         "    { \"rel\": [ \"previous\" ], \"href\": \"http://api.x.io/orders/41\" },\n" +
-                         "    { \"rel\": [ \"next\" ], \"href\": \"http://api.x.io/orders/43\" }\n" +
-                         "  ]\n" +
-                         "}";
+  private String loadEntity() throws IOException {
+    return IOUtils.toString(
+        this.getClass().getResourceAsStream("entity.json"),
+        "UTF-8"
+    );
+  }
 
   @BeforeEach
   private void setUp() {
@@ -79,8 +40,8 @@ public class HttpClientFacadeTest {
   }
 
   @Test
-  public void testLoadSirenEntity() throws ExecutionException, InterruptedException {
-    mockWebServer.enqueue(new MockResponse().setBody(siren));
+  public void testLoadSirenEntity() throws ExecutionException, InterruptedException, IOException {
+    mockWebServer.enqueue(new MockResponse().setBody(loadEntity()));
     final HttpUrl testUrl = mockWebServer.url("/orders");
     final Request request = new Request.Builder().get().url(testUrl).build();
     final Future<SirenEntity> future = HttpClientFacade.loadSirenEntity(request);
@@ -97,8 +58,8 @@ public class HttpClientFacadeTest {
     });
     HttpClientFacade.addInterceptor(interceptor);
 
-    mockWebServer.enqueue(new MockResponse().setBody(siren));
-    final HttpUrl testUrl =  mockWebServer.url("/protectedOrder");
+    mockWebServer.enqueue(new MockResponse().setBody(loadEntity()));
+    final HttpUrl testUrl = mockWebServer.url("/protectedOrder");
     final Request request = new Request.Builder().get().url(testUrl).build();
     final SirenEntity entity = HttpClientFacade.loadSirenEntity(request).get();
     verify(interceptor, times(1)).intercept(any(Interceptor.Chain.class));
