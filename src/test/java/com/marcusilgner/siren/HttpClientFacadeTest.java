@@ -45,6 +45,7 @@ public class HttpClientFacadeTest {
     final HttpUrl testUrl = mockWebServer.url("/orders");
     final Request request = new Request.Builder().get().url(testUrl).build();
     final Future<SirenEntity> future = HttpClientFacade.loadSirenEntity(request);
+    assertNotNull(future);
     final SirenEntity entity = future.get();
     assertEquals("Order 42", entity.getTitle().get());
   }
@@ -53,7 +54,7 @@ public class HttpClientFacadeTest {
   public void testAddInterceptor() throws ExecutionException, InterruptedException, IOException {
     Interceptor interceptor = mock(Interceptor.class);
     when(interceptor.intercept(any(Interceptor.Chain.class))).then(i -> {
-      Interceptor.Chain chain = ((Interceptor.Chain) i.getArgument(0));
+      Interceptor.Chain chain = i.getArgument(0);
       return chain.proceed(chain.request());
     });
     HttpClientFacade.addInterceptor(interceptor);

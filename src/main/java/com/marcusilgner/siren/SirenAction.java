@@ -41,7 +41,7 @@ public class SirenAction extends SirenObject implements SubItemMixin {
   public CompletableFuture<SirenEntity> submit() {
     String href = getHref().orElse(null);
     if (href == null) {
-      CompletableFuture<SirenEntity> future = new CompletableFuture();
+      CompletableFuture<SirenEntity> future = new CompletableFuture<>();
       future.completeExceptionally(new IllegalArgumentException("Missing action href"));
       return future;
     }
