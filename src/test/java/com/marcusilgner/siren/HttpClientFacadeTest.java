@@ -2,6 +2,7 @@ package com.marcusilgner.siren;
 
 import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -51,13 +52,15 @@ public class HttpClientFacadeTest {
   }
 
   @Test
-  public void testAddInterceptor() throws ExecutionException, InterruptedException, IOException {
+  public void testSetHttpClientBuilder() throws ExecutionException, InterruptedException, IOException {
     Interceptor interceptor = mock(Interceptor.class);
     when(interceptor.intercept(any(Interceptor.Chain.class))).then(i -> {
       Interceptor.Chain chain = i.getArgument(0);
       return chain.proceed(chain.request());
     });
-    HttpClientFacade.addInterceptor(interceptor);
+    OkHttpClient.Builder builder = new OkHttpClient.Builder();
+    builder.addInterceptor(interceptor);
+    HttpClientFacade.setHttpClientBuilder(builder);
 
     mockWebServer.enqueue(new MockResponse().setBody(loadEntity()));
     final HttpUrl testUrl = mockWebServer.url("/protectedOrder");

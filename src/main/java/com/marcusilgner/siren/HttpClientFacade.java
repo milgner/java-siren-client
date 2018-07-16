@@ -14,9 +14,16 @@ import java.util.concurrent.CompletableFuture;
 // Facilitates working with HTTP. Since it's supposed to be a singleton, make things here static
 public class HttpClientFacade {
   private static OkHttpClient httpClient = null;
-  private static List<Interceptor> httpInterceptors = new ArrayList<>();
+  private static OkHttpClient.Builder httpClientBuilder = null;
 
   private HttpClientFacade() {
+  }
+
+  public static void setHttpClientBuilder(OkHttpClient.Builder builder) {
+    httpClientBuilder = builder;
+    if (httpClient != null) {
+      httpClient = null;
+    }
   }
 
   public static OkHttpClient getHttpClient() {
@@ -25,12 +32,6 @@ public class HttpClientFacade {
     }
     initializeHttpClient();
     return httpClient;
-  }
-
-  // These can then add authorization information, hide away things like refreshing OAuth tokens etc
-  public static void addInterceptor(Interceptor interceptor) {
-    httpInterceptors.add(interceptor);
-    shutdownExistingClient();
   }
 
   public static CompletableFuture<SirenEntity> loadSirenEntity(Request request) {
@@ -63,9 +64,11 @@ public class HttpClientFacade {
   }
 
   private static synchronized void initializeHttpClient() {
-    OkHttpClient.Builder builder = new OkHttpClient.Builder();
-    httpInterceptors.forEach(builder::addInterceptor);
-    httpClient = builder.build();
+    if (httpClientBuilder == null) {
+      httpClientBuilder = new OkHttpClient.Builder();
+    }
+
+    httpClient = httpClientBuilder.build();
   }
 
   private static synchronized void shutdownExistingClient() {
