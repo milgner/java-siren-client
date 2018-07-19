@@ -13,29 +13,16 @@ import java.util.concurrent.CompletableFuture;
 
 // Facilitates working with HTTP. Since it's supposed to be a singleton, make things here static
 public class HttpClientFacade {
-  private static OkHttpClient httpClient = null;
-  private static OkHttpClient.Builder httpClientBuilder = null;
+  private static HttpRequestFactory httpRequestFactory = null;
 
   private HttpClientFacade() {
   }
 
-  public static void setHttpClientBuilder(OkHttpClient.Builder builder) {
-    httpClientBuilder = builder;
-    if (httpClient != null) {
-      httpClient = null;
-    }
+  public static void setHttpRequestFactory(HttpRequestFactory factory) {
+    httpRequestFactory = factory;
   }
 
-  public static OkHttpClient getHttpClient() {
-    if (httpClient != null) {
-      return httpClient;
-    }
-    initializeHttpClient();
-    return httpClient;
-  }
-
-  public static CompletableFuture<SirenEntity> loadSirenEntity(Request request) {
-    OkHttpClient client = getHttpClient();
+  public static CompletableFuture<SirenEntity> loadSirenEntity(OkHttpClient client, Request request) {
     Call call = client.newCall(request);
     CompletableFuture<SirenEntity> future = new CompletableFuture<>();
 
@@ -63,20 +50,10 @@ public class HttpClientFacade {
     return future;
   }
 
-  private static synchronized void initializeHttpClient() {
-    if (httpClientBuilder == null) {
-      httpClientBuilder = new OkHttpClient.Builder();
+  protected static Request.Builder createRequestBuilder() {
+    if (httpRequestFactory != null) {
+      return httpRequestFactory.createRequestBuilder();
     }
-
-    httpClient = httpClientBuilder.build();
-  }
-
-  private static synchronized void shutdownExistingClient() {
-    if (httpClient == null) {
-      return;
-    }
-    httpClient.dispatcher().executorService().shutdown();
-    httpClient.connectionPool().evictAll();
-    httpClient = null;
+    return new Request.Builder();
   }
 }

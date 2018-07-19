@@ -30,11 +30,11 @@ public class SirenEntityTest {
   public void testGetLinkHrefByRel() {
     SirenEntity entity = new SirenEntity(getEntityJsonObject());
 
-    Optional<String> selfLink = entity.getLinkHrefByRel("self");
-    assertEquals("http://api.x.io/orders/42", selfLink.get());
+    Optional<SirenLink> selfLink = entity.getLinkByRel("self");
+    assertEquals("http://api.x.io/orders/42", selfLink.get().getHref().get());
 
-    Optional<String> nonexistingLink = entity.getLinkHrefByRel("foobar");
-    assertFalse(((Optional) nonexistingLink).isPresent());
+    Optional<SirenLink> nonexistingLink = entity.getLinkByRel("foobar");
+    assertFalse(nonexistingLink.isPresent());
   }
 
   @Test

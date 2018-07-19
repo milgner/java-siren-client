@@ -45,28 +45,24 @@ public class HttpClientFacadeTest {
     mockWebServer.enqueue(new MockResponse().setBody(loadEntity()));
     final HttpUrl testUrl = mockWebServer.url("/orders");
     final Request request = new Request.Builder().get().url(testUrl).build();
-    final Future<SirenEntity> future = HttpClientFacade.loadSirenEntity(request);
+    final OkHttpClient client = new OkHttpClient.Builder().build();
+    final Future<SirenEntity> future = HttpClientFacade.loadSirenEntity(client, request);
     assertNotNull(future);
     final SirenEntity entity = future.get();
     assertEquals("Order 42", entity.getTitle().get());
   }
 
   @Test
-  public void testSetHttpClientBuilder() throws ExecutionException, InterruptedException, IOException {
-    Interceptor interceptor = mock(Interceptor.class);
-    when(interceptor.intercept(any(Interceptor.Chain.class))).then(i -> {
-      Interceptor.Chain chain = i.getArgument(0);
-      return chain.proceed(chain.request());
-    });
-    OkHttpClient.Builder builder = new OkHttpClient.Builder();
-    builder.addInterceptor(interceptor);
-    HttpClientFacade.setHttpClientBuilder(builder);
+  public void testSetHttpRequestFactory() throws ExecutionException, InterruptedException, IOException {
+    HttpRequestFactory factory = mock(HttpRequestFactory.class);
+    when(factory.createRequestBuilder()).then(i -> new Request.Builder());
+    HttpClientFacade.setHttpRequestFactory(factory);
 
     mockWebServer.enqueue(new MockResponse().setBody(loadEntity()));
-    final HttpUrl testUrl = mockWebServer.url("/protectedOrder");
-    final Request request = new Request.Builder().get().url(testUrl).build();
-    final SirenEntity entity = HttpClientFacade.loadSirenEntity(request).get();
-    verify(interceptor, times(1)).intercept(any(Interceptor.Chain.class));
+    final SirenEntity entity = new SirenEntity(loadEntity());
+    final OkHttpClient client = new OkHttpClient.Builder().build();
+    final SirenEntity reloadedEntity = entity.reload(client).get();
+    verify(factory, times(1)).createRequestBuilder();
     assertNotNull(entity);
 
   }

@@ -1,13 +1,16 @@
 package com.marcusilgner.siren;
 
-import okhttp3.FormBody;
-import okhttp3.Request;
-import okhttp3.RequestBody;
+import okhttp3.*;
 
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonValue;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -38,15 +41,23 @@ public class SirenAction extends SirenObject implements SubItemMixin {
     return stringValue(json, "type").orElse("application/x-www-form-urlencoded");
   }
 
-  public CompletableFuture<SirenEntity> submit() {
+  public CompletableFuture<SirenEntity> submit(OkHttpClient httpClient) {
     String href = getHref().orElse(null);
     if (href == null) {
-      CompletableFuture<SirenEntity> future = new CompletableFuture<>();
-      future.completeExceptionally(new IllegalArgumentException("Missing action href"));
-      return future;
+      return createFailedFuture("Missing action href");
     }
-    Request request = new Request.Builder().url(href).method(getMethod(), getRequestBody()).build();
-    return HttpClientFacade.loadSirenEntity(request);
+    RequestBody requestBody = getRequestBody();
+    if (requestBody == null) {
+      return createFailedFuture("Unable to build request body");
+    }
+    Request request = new Request.Builder().url(href).method(getMethod(), requestBody).build();
+    return HttpClientFacade.loadSirenEntity(httpClient, request);
+  }
+
+  private CompletableFuture<SirenEntity> createFailedFuture(String errorMessage) {
+    CompletableFuture<SirenEntity> future = new CompletableFuture<>();
+    future.completeExceptionally(new IllegalArgumentException(errorMessage));
+    return future;
   }
 
   private RequestBody getRequestBody() {
@@ -55,9 +66,32 @@ public class SirenAction extends SirenObject implements SubItemMixin {
         return getFormEncodedRequestBody();
       case "application/json":
         return getJsonEncodedRequestBody();
+      case "multipart/form-data":
+        try {
+          return getMultipartFormBody();
+        } catch (IOException e) {
+          return null;
+        }
       default:
         return null;
     }
+  }
+
+  private RequestBody getMultipartFormBody() throws IOException {
+    MultipartBody.Builder builder = new MultipartBody.Builder()
+                                        .setType(MultipartBody.FORM);
+    for (ActionField field  : fields) {
+      if (field.getValue() == null) { continue; }
+      if (field.getType().equalsIgnoreCase("file")) {
+        // interpret string value as path
+        Path file = Paths.get(field.getValue());
+        RequestBody fileBody = RequestBody.create(MediaType.parse(Files.probeContentType(file)), file.toFile());
+        builder.addFormDataPart(field.getName(), file.getFileName().toString(), fileBody);
+      } else {
+        builder.addFormDataPart(field.getName(), field.getValue());
+      }
+    };
+    return builder.build();
   }
 
   private RequestBody getJsonEncodedRequestBody() {
