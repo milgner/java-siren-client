@@ -12,7 +12,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 // Encapsulates Siren actions and provides helpers to submit them
@@ -40,26 +39,30 @@ public class SirenAction extends SirenObject implements SubItemMixin {
     return stringValue(json, "type").orElse("application/x-www-form-urlencoded");
   }
 
-  public CompletableFuture<SirenEntity> submit(OkHttpClient httpClient) {
+  public Request buildRequest() throws IOException {
     String href = getHref().orElse(null);
     if (href == null) {
-      return createFailedFuture("Missing action href");
+      // TOOD: introduce some fitting exception types
+      throw new IllegalArgumentException("Missing HREF in action");
     }
     RequestBody requestBody = getRequestBody();
     if (requestBody == null) {
-      return createFailedFuture("Unable to build request body");
+      throw new IOException("Failed to build request body");
     }
-    Request request = HttpClientFacade.createRequestBuilder()
-                                      .url(href)
-                                      .method(getMethod(), requestBody)
-                                      .build();
-    return HttpClientFacade.loadSirenEntity(httpClient, request);
+    return HttpClientFacade.createRequestBuilder()
+                           .url(href)
+                           .method(getMethod(), requestBody)
+                           .build();
   }
 
-  private CompletableFuture<SirenEntity> createFailedFuture(String errorMessage) {
-    CompletableFuture<SirenEntity> future = new CompletableFuture<>();
-    future.completeExceptionally(new IllegalArgumentException(errorMessage));
-    return future;
+  public Optional<SirenEntity> submit(OkHttpClient httpClient) {
+    Request request = null;
+    try {
+      request = buildRequest();
+    } catch (IOException e) {
+      return Optional.empty();
+    }
+    return HttpClientFacade.loadSirenEntity(httpClient, request);
   }
 
   private RequestBody getRequestBody() {

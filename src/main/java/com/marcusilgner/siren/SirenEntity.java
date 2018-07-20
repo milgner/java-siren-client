@@ -9,7 +9,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -31,14 +30,14 @@ public class SirenEntity extends SirenObject {
     return asStringList(object);
   }
 
-  public CompletableFuture<SirenEntity> reload(OkHttpClient httpClient) {
+  public Optional<SirenEntity> reload(OkHttpClient httpClient) {
     Optional<SirenLink> link = getLinkByRel("self");
     Optional<String> href = link.isPresent() ? link.get().getHref() : Optional.empty();
     if (!href.isPresent()) {
       href = SirenObject.stringValue(getJson(), "href");
     }
     if (!href.isPresent()) {
-      return CompletableFuture.completedFuture(null);
+      return Optional.empty();
     }
 
     Request request = HttpClientFacade.createRequestBuilder().get().url(href.get()).build();

@@ -11,11 +11,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 public class HttpClientFacadeTest {
@@ -45,10 +46,9 @@ public class HttpClientFacadeTest {
     final HttpUrl testUrl = mockWebServer.url("/orders");
     final Request request = new Request.Builder().get().url(testUrl).build();
     final OkHttpClient client = new OkHttpClient.Builder().build();
-    final Future<SirenEntity> future = HttpClientFacade.loadSirenEntity(client, request);
-    assertNotNull(future);
-    final SirenEntity entity = future.get();
-    assertEquals("Order 42", entity.getTitle().get());
+    final Optional<SirenEntity> entity = HttpClientFacade.loadSirenEntity(client, request);
+    assertTrue(entity.isPresent());
+    assertEquals("Order 42", entity.get().getTitle().get());
   }
 
   @Test
