@@ -61,12 +61,15 @@ public class SirenEntity extends SirenObject {
     return buildStream(links, SirenLink.class).collect(Collectors.toList());
   }
 
-  public Optional<SirenAction> getActionByRel(String rel) {
+  public Optional<SirenAction> getActionByName(String name) {
     JsonArray actions = json.getJsonArray("actions");
     if (actions == null) {
       return Optional.empty();
     }
-    return findByRel(buildStream(actions, SirenAction.class), rel);
+    return actions.stream()
+                  .map(json -> new SirenAction(json.asJsonObject()))
+                  .filter(element -> name.equalsIgnoreCase(element.getName().orElse(null)))
+                  .findAny();
   }
 
   public List<SirenAction> getActions() {

@@ -71,4 +71,12 @@ public class SirenEntityTest {
     List<SirenAction.ActionField> fields = action.getFields();
     assertEquals(3, fields.size());
   }
+
+  @Test
+  public void testGetActionByName() {
+    SirenEntity entity = new SirenEntity(getEntityJsonObject());
+    Optional<SirenAction> action = entity.getActionByName("add-item");
+    assertTrue(action.isPresent());
+    assertEquals("Add Item", action.get().getTitle().get());
+  }
 }
