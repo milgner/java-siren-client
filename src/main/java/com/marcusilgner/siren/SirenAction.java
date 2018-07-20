@@ -49,7 +49,10 @@ public class SirenAction extends SirenObject implements SubItemMixin {
     if (requestBody == null) {
       return createFailedFuture("Unable to build request body");
     }
-    Request request = new Request.Builder().url(href).method(getMethod(), requestBody).build();
+    Request request = HttpClientFacade.createRequestBuilder()
+                                      .url(href)
+                                      .method(getMethod(), requestBody)
+                                      .build();
     return HttpClientFacade.loadSirenEntity(httpClient, request);
   }
 
