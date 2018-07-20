@@ -7,8 +7,6 @@ import javax.json.JsonObject;
 import javax.json.JsonReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 // Facilitates working with HTTP. Since it's supposed to be a singleton, make things here static

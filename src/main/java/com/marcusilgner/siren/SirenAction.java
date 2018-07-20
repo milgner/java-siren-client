@@ -6,7 +6,6 @@ import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonValue;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -80,8 +79,10 @@ public class SirenAction extends SirenObject implements SubItemMixin {
   private RequestBody getMultipartFormBody() throws IOException {
     MultipartBody.Builder builder = new MultipartBody.Builder()
                                         .setType(MultipartBody.FORM);
-    for (ActionField field  : fields) {
-      if (field.getValue() == null) { continue; }
+    for (ActionField field : fields) {
+      if (field.getValue() == null) {
+        continue;
+      }
       if (field.getType().equalsIgnoreCase("file")) {
         // interpret string value as path
         Path file = Paths.get(field.getValue());
@@ -90,7 +91,8 @@ public class SirenAction extends SirenObject implements SubItemMixin {
       } else {
         builder.addFormDataPart(field.getName(), field.getValue());
       }
-    };
+    }
+    ;
     return builder.build();
   }
 
@@ -126,7 +128,7 @@ public class SirenAction extends SirenObject implements SubItemMixin {
   }
 
   // TODO: support non-string values (probably using Generics, will need adapter to retrieve data from Json)
-  class ActionField extends SirenObject {
+  public class ActionField extends SirenObject {
     private String value;
 
     private ActionField(JsonValue json) {

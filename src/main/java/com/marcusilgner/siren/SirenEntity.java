@@ -5,7 +5,6 @@ import okhttp3.Request;
 
 import javax.json.*;
 import java.io.StringReader;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -42,13 +41,15 @@ public class SirenEntity extends SirenObject {
       return CompletableFuture.completedFuture(null);
     }
 
-    Request request = new Request.Builder().get().url(href.get()).build();
+    Request request = HttpClientFacade.createRequestBuilder().get().url(href.get()).build();
     return HttpClientFacade.loadSirenEntity(httpClient, request);
   }
 
   public List<SirenSubEntity> getSubEntities() {
     JsonArray entities = json.getJsonArray("entities");
-    if (entities == null) { return Collections.emptyList(); }
+    if (entities == null) {
+      return Collections.emptyList();
+    }
     return buildStream(entities, SirenSubEntity.class).collect(Collectors.toList());
   }
 
@@ -62,19 +63,25 @@ public class SirenEntity extends SirenObject {
 
   public Optional<SirenAction> getActionByRel(String rel) {
     JsonArray actions = json.getJsonArray("actions");
-    if (actions == null) { return Optional.empty(); }
+    if (actions == null) {
+      return Optional.empty();
+    }
     return findByRel(buildStream(actions, SirenAction.class), rel);
   }
 
   public List<SirenAction> getActions() {
     JsonArray actions = json.getJsonArray("actions");
-    if (actions == null) { return Collections.emptyList(); }
+    if (actions == null) {
+      return Collections.emptyList();
+    }
     return buildStream(actions, SirenAction.class).collect(Collectors.toList());
   }
 
   public Optional<SirenLink> getLinkByRel(String rel) {
     JsonArray links = json.getJsonArray("links");
-    if (links == null) { return Optional.empty(); }
+    if (links == null) {
+      return Optional.empty();
+    }
     return findByRel(buildStream(links, SirenLink.class), rel);
   }
 
