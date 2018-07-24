@@ -35,9 +35,10 @@ public class SirenEntity extends SirenObject {
     Optional<String> href = link.isPresent() ? link.get().getHref() : Optional.empty();
     if (!href.isPresent()) {
       href = SirenObject.stringValue(getJson(), "href");
-    }
-    if (!href.isPresent()) {
-      return Optional.empty();
+
+      if (!href.isPresent()) {
+        return Optional.empty();
+      }
     }
 
     Request request = HttpClientFacade.createRequestBuilder().get().url(href.get()).build();
@@ -50,6 +51,14 @@ public class SirenEntity extends SirenObject {
       return Collections.emptyList();
     }
     return buildStream(entities, SirenSubEntity.class).collect(Collectors.toList());
+  }
+
+  public List<SirenSubEntity> selectEntitiesByRel(String rel) {
+    JsonArray entities = json.getJsonArray("entities");
+    if (entities == null) {
+      return Collections.emptyList();
+    }
+    return filterByRel(buildStream(entities, SirenSubEntity.class), rel).collect(Collectors.toList());
   }
 
   public List<SirenLink> getLinks() {
@@ -84,7 +93,7 @@ public class SirenEntity extends SirenObject {
     if (links == null) {
       return Optional.empty();
     }
-    return findByRel(buildStream(links, SirenLink.class), rel);
+    return filterByRel(buildStream(links, SirenLink.class), rel).findAny();
   }
 
   public Map<String, JsonValue> getProperties() {
@@ -108,10 +117,10 @@ public class SirenEntity extends SirenObject {
     });
   }
 
-  private <T extends SubItemMixin> Optional<T> findByRel(Stream<T> stream, String rel) {
+  private <T extends SubItemMixin> Stream<T> filterByRel(Stream<T> stream, String rel) {
     return stream.filter(element -> {
       Optional<String> any = element.getRelList().stream().filter(foundRel -> foundRel.equals(rel)).findAny();
       return any.isPresent();
-    }).findAny();
+    });
   }
 }

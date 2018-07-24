@@ -15,7 +15,6 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
@@ -51,8 +50,12 @@ public class HttpClientFacadeTest {
     assertEquals("Order 42", entity.get().getTitle().get());
   }
 
+  private SirenLink fakeSirenLink() {
+    return new SirenLink(Fixtures.buildSirenLink("self", mockWebServer.url("/orders/42").toString()).build());
+  }
+
   @Test
-  public void testSetHttpRequestFactory() throws ExecutionException, InterruptedException, IOException {
+  public void testSetHttpRequestFactory() throws IOException {
     HttpRequestFactory factory = mock(HttpRequestFactory.class);
     when(factory.createRequestBuilder()).then(i -> new Request.Builder());
     HttpClientFacade.setHttpRequestFactory(factory);
@@ -60,9 +63,9 @@ public class HttpClientFacadeTest {
     mockWebServer.enqueue(new MockResponse().setBody(loadEntity()));
     final SirenEntity entity = new SirenEntity(loadEntity());
     final OkHttpClient client = new OkHttpClient.Builder().build();
-    final SirenEntity reloadedEntity = entity.reload(client).get();
+    when(entity.getLinkByRel("self")).thenReturn(Optional.of(fakeSirenLink()));
+    final Optional<SirenEntity> reloadedEntity = entity.reload(client);
     verify(factory, times(1)).createRequestBuilder();
-    assertNotNull(entity);
-
+    assertTrue(reloadedEntity.isPresent());
   }
 }

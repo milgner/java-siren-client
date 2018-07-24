@@ -104,7 +104,14 @@ public class SirenAction extends SirenObject implements SubItemMixin {
 
   private RequestBody getJsonEncodedRequestBody() {
     JsonObjectBuilder builder = Json.createObjectBuilder();
-    fields.forEach(field -> builder.add(field.getName(), field.getValue()));
+    if (fields != null) {
+      fields.forEach(field -> {
+        if (field.getValue() == null) {
+          return;
+        }
+        builder.add(field.getName(), field.getValue());
+      });
+    }
     return new JsonRequestBody(builder.build());
   }
 

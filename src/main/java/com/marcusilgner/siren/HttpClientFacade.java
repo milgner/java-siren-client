@@ -1,6 +1,9 @@
 package com.marcusilgner.siren;
 
-import okhttp3.*;
+import okhttp3.Call;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -8,7 +11,6 @@ import javax.json.JsonReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 // Facilitates working with HTTP. Since it's supposed to be a singleton, make things here static
 public class HttpClientFacade {

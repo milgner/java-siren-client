@@ -30,7 +30,7 @@ public class Fixtures {
                .add("title", "Add Item")
                .add("method", "POST")
                .add("href", "http://api.x.io/orders/42/items")
-               .add("type", "application/x-www-form-urlencoded")
+               .add("type", "application/json")
                .add("fields", Json.createArrayBuilder()
                                   .add(Json.createObjectBuilder().add("name", "orderNumber")
                                            .add("type", "hidden")

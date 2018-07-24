@@ -67,7 +67,7 @@ public class SirenEntityTest {
     assertEquals("Add Item", action.getTitle().get());
     assertEquals("POST", action.getMethod());
     assertEquals("http://api.x.io/orders/42/items", action.getHref().get());
-    assertEquals("application/x-www-form-urlencoded", action.getType());
+    assertEquals("application/json", action.getType());
     List<SirenAction.ActionField> fields = action.getFields();
     assertEquals(3, fields.size());
   }
