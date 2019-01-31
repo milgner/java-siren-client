@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -21,6 +22,16 @@ public class SirenAction extends SirenObject implements SubItemMixin {
 
   public SirenAction(JsonObject json) {
     super(json);
+  }
+
+  public SirenAction(SirenAction object) {
+    super(object);
+    if (object.fields != null) {
+      this.fields = new ArrayList<>(object.fields.size());
+      for (ActionField field : object.fields) {
+        this.fields.add(new ActionField(field));
+      }
+    }
   }
 
   public Optional<String> getName() {
@@ -144,6 +155,10 @@ public class SirenAction extends SirenObject implements SubItemMixin {
   public class ActionField extends SirenObject {
     private String value;
 
+    private ActionField(ActionField object) {
+      super(object);
+      this.value = object.value;
+    }
     private ActionField(JsonValue json) {
       super(json.asJsonObject());
       Optional<String> optValue = stringValue(json.asJsonObject(), "value");

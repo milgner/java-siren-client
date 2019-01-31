@@ -1,9 +1,7 @@
 package com.marcusilgner.siren;
 
-import javax.json.JsonArray;
-import javax.json.JsonObject;
-import javax.json.JsonString;
-import javax.json.JsonValue;
+import javax.json.*;
+import java.io.StringReader;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -14,6 +12,10 @@ public class SirenObject {
   protected JsonObject json;
 
   protected SirenObject() {
+  }
+  // copy constructor
+  protected SirenObject(SirenObject object) {
+    this.json = Json.createReader(new StringReader(object.json.toString())).readObject();
   }
 
   public SirenObject(JsonObject json) {

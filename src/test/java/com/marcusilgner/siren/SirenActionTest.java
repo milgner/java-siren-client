@@ -23,6 +23,14 @@ public class SirenActionTest {
   }
 
   @Test
+  public void testCopyConstructor() {
+    SirenAction action = new SirenAction(Fixtures.getAddItemAction().build());
+    SirenAction copyAction = new SirenAction(action);
+    assertNotNull(copyAction);
+    assertEquals(action.json, copyAction.json);
+  }
+
+  @Test
   public void testGetField() {
     SirenAction action = new SirenAction(Fixtures.getAddItemAction().build());
     Optional<SirenAction.ActionField> orderNumberField = action.getField("orderNumber");

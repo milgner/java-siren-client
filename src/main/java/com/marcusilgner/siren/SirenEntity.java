@@ -74,10 +74,15 @@ public class SirenEntity extends SirenObject {
     if (actions == null) {
       return Optional.empty();
     }
-    return actions.stream()
+    Optional<SirenAction> action = actions.stream()
                   .map(json -> new SirenAction(json.asJsonObject()))
                   .filter(element -> name.equalsIgnoreCase(element.getName().orElse(null)))
                   .findAny();
+    if (action.isPresent()) {
+      return Optional.of(new SirenAction(action.get()));
+    } else {
+      return action;
+    }
   }
 
   public List<SirenAction> getActions() {
